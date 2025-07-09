@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -175,6 +174,23 @@ const Dashboard = () => {
     });
   };
 
+  const handleSectionNavigation = (section: string) => {
+    const routes = {
+      'resume-analysis': '/resume-analysis-engine',
+      'upload-jd': '/upload-job-description',
+      'jd-extractor': '/jd-extractor',
+      'match-analysis': '/match-analysis',
+      'jd-vs-resume': '/jd-vs-resume',
+      'recruit': '/recruit',
+      'history': '/history'
+    };
+    
+    const route = routes[section as keyof typeof routes];
+    if (route) {
+      navigate(route);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
@@ -265,7 +281,7 @@ const Dashboard = () => {
         {/* Feature Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Resume Analysis Engine */}
-          <Card className="bg-black/20 border-purple-500/20 group hover:border-cyan-500/40 transition-colors">
+          <Card className="bg-black/20 border-purple-500/20 group hover:border-cyan-500/40 transition-colors cursor-pointer" onClick={() => handleSectionNavigation('resume-analysis')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center justify-center w-12 h-12 bg-cyan-500/20 rounded-lg">
@@ -282,7 +298,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Upload Job Description */}
-          <Card className="bg-black/20 border-purple-500/20 group hover:border-green-500/40 transition-colors">
+          <Card className="bg-black/20 border-purple-500/20 group hover:border-green-500/40 transition-colors cursor-pointer" onClick={() => handleSectionNavigation('upload-jd')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center justify-center w-12 h-12 bg-green-500/20 rounded-lg">
@@ -299,7 +315,7 @@ const Dashboard = () => {
           </Card>
 
           {/* JD Extractor */}
-          <Card className="bg-black/20 border-purple-500/20 group hover:border-blue-500/40 transition-colors">
+          <Card className="bg-black/20 border-purple-500/20 group hover:border-blue-500/40 transition-colors cursor-pointer" onClick={() => handleSectionNavigation('jd-extractor')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center justify-center w-12 h-12 bg-blue-500/20 rounded-lg">
@@ -316,7 +332,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Match Analysis */}
-          <Card className="bg-black/20 border-purple-500/20 group hover:border-orange-500/40 transition-colors">
+          <Card className="bg-black/20 border-purple-500/20 group hover:border-orange-500/40 transition-colors cursor-pointer" onClick={() => handleSectionNavigation('match-analysis')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center justify-center w-12 h-12 bg-orange-500/20 rounded-lg">
@@ -336,7 +352,7 @@ const Dashboard = () => {
         {/* Second Row of Feature Cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {/* JD vs Resume */}
-          <Card className="bg-black/20 border-purple-500/20 group hover:border-purple-500/40 transition-colors">
+          <Card className="bg-black/20 border-purple-500/20 group hover:border-purple-500/40 transition-colors cursor-pointer" onClick={() => handleSectionNavigation('jd-vs-resume')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center justify-center w-12 h-12 bg-purple-500/20 rounded-lg">
@@ -353,7 +369,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Recruit */}
-          <Card className="bg-black/20 border-purple-500/20 group hover:border-pink-500/40 transition-colors">
+          <Card className="bg-black/20 border-purple-500/20 group hover:border-pink-500/40 transition-colors cursor-pointer" onClick={() => handleSectionNavigation('recruit')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center justify-center w-12 h-12 bg-pink-500/20 rounded-lg">
@@ -363,18 +379,14 @@ const Dashboard = () => {
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Recruit</h3>
               <p className="text-gray-400 text-sm mb-4">Bulk resume analysis and candidate matching for recruitment</p>
-              <Button 
-                onClick={handleBulkAnalysis}
-                disabled={isAnalyzing || files.length === 0}
-                className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
-              >
-                {isAnalyzing ? "Analyzing..." : "Get Started"}
+              <Button className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white">
+                Get Started
               </Button>
             </CardContent>
           </Card>
 
           {/* History */}
-          <Card className="bg-black/20 border-purple-500/20 group hover:border-yellow-500/40 transition-colors">
+          <Card className="bg-black/20 border-purple-500/20 group hover:border-yellow-500/40 transition-colors cursor-pointer" onClick={() => handleSectionNavigation('history')}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center justify-center w-12 h-12 bg-yellow-500/20 rounded-lg">
@@ -430,25 +442,53 @@ const Dashboard = () => {
 
         {/* Navigation Tabs at Bottom */}
         <div className="flex flex-wrap gap-2 justify-center">
-          <Badge variant="default" className="px-4 py-2 bg-purple-500/20 text-purple-400 border-purple-500/30">
+          <Badge 
+            variant="default" 
+            className="px-4 py-2 bg-purple-500/20 text-purple-400 border-purple-500/30 cursor-pointer hover:bg-purple-500/30"
+            onClick={() => handleSectionNavigation('resume-analysis')}
+          >
             Resume Analysis Engine
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer">
+          <Badge 
+            variant="secondary" 
+            className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer"
+            onClick={() => handleSectionNavigation('upload-jd')}
+          >
             Upload Job Description
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer">
+          <Badge 
+            variant="secondary" 
+            className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer"
+            onClick={() => handleSectionNavigation('jd-extractor')}
+          >
             JD Extractor
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer">
+          <Badge 
+            variant="secondary" 
+            className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer"
+            onClick={() => handleSectionNavigation('match-analysis')}
+          >
             Match Analysis
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer">
+          <Badge 
+            variant="secondary" 
+            className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer"
+            onClick={() => handleSectionNavigation('jd-vs-resume')}
+          >
             JD vs Resume
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer">
+          <Badge 
+            variant="secondary" 
+            className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer"
+            onClick={() => handleSectionNavigation('recruit')}
+          >
             Recruit
           </Badge>
-          <Badge variant="secondary" className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer">
+          <Badge 
+            variant="secondary" 
+            className="px-4 py-2 bg-black/20 text-gray-400 hover:bg-gray-700/20 cursor-pointer"
+            onClick={() => handleSectionNavigation('history')}
+          >
             History
           </Badge>
         </div>
