@@ -34,11 +34,14 @@ const Dashboard = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [bulkResults, setBulkResults] = useState<any[]>([]);
+  const [jdUploadProgress, setJdUploadProgress] = useState(0);
+  const [showJdConfirm, setShowJdConfirm] = useState(false);
+  const [selectedJdFile, setSelectedJdFile] = useState<File | null>(null);
 
   // Get user email on component mount
   useEffect(() => {
-    // In a real app, this would come from authentication context or API
-    const email = localStorage.getItem('userEmail') || 'john.doe@company.com';
+    // Get the actual user email from localStorage or use a default
+    const email = localStorage.getItem('userEmail') || 'user@example.com';
     setUserEmail(email);
   }, []);
 
@@ -81,7 +84,8 @@ const Dashboard = () => {
   const handleJDUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setShowUpload(true);
+      setSelectedJdFile(file);
+      setShowJdConfirm(true);
       // Simulate reading file content
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -92,20 +96,25 @@ const Dashboard = () => {
   };
 
   const confirmJDUpload = () => {
-    setShowUpload(false);
+    if (!selectedJdFile) return;
+    
+    setShowJdConfirm(false);
+    setJdUploadProgress(0);
+    
     // Simulate upload progress
-    let progress = 0;
     const interval = setInterval(() => {
-      progress += 20;
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        toast({
-          title: "Job description uploaded!",
-          description: "JD has been processed and is ready for matching.",
-        });
-        setUploadProgress(0);
-      }
+      setJdUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          toast({
+            title: "Job description uploaded!",
+            description: "JD has been processed and is ready for matching.",
+          });
+          setJdUploadProgress(0);
+          return 100;
+        }
+        return prev + 20;
+      });
     }, 300);
   };
 
@@ -189,7 +198,7 @@ const Dashboard = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="text-gray-300 hover:text-white hover:bg-white/10 border border-transparent hover:border-purple-500/30 transition-all duration-300 backdrop-blur-sm"
+                className="bg-black/20 border-purple-500/30 text-purple-400 hover:text-white hover:border-purple-500 hover:bg-purple-500/10 transition-all duration-300 backdrop-blur-sm"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -366,7 +375,7 @@ const Dashboard = () => {
                     placeholder="Paste or edit job description here..."
                     className="w-full h-24 p-3 bg-black/20 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none"
                   />
-                  {showUpload && (
+                  {showJdConfirm && (
                     <Button
                       onClick={confirmJDUpload}
                       className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
@@ -378,13 +387,13 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {uploadProgress > 0 && uploadProgress < 100 && (
+              {jdUploadProgress > 0 && jdUploadProgress < 100 && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Processing JD...</span>
-                    <span className="text-green-400">{uploadProgress}%</span>
+                    <span className="text-green-400">{jdUploadProgress}%</span>
                   </div>
-                  <Progress value={uploadProgress} className="h-2" />
+                  <Progress value={jdUploadProgress} className="h-2" />
                 </div>
               )}
             </CardContent>
