@@ -1,1218 +1,451 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import BulkResumeResults from "@/components/BulkResumeResults";
 import { 
   Upload, 
   FileText, 
-  Link as LinkIcon, 
-  History, 
-  Download, 
+  Target, 
   BarChart3, 
   LogOut, 
   User,
-  Target,
+  Brain,
+  Zap,
   Clock,
-  Search,
-  ArrowRight,
-  Plus,
-  Filter,
-  Eye,
-  Trash2,
+  CheckCircle,
+  TrendingUp,
   Users,
-  Database,
-  FolderOpen
-}  from "lucide-react";
+  Search,
+  Plus
+} from "lucide-react";
 
 const Dashboard = () => {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [bulkFiles, setBulkFiles] = useState<File[]>([]);
-  const [jobTitle, setJobTitle] = useState("");
-  const [company, setCompany] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
-  const [uploadMethod, setUploadMethod] = useState("text");
-  const [selectedResume, setSelectedResume] = useState("");
-  const [selectedJD, setSelectedJD] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [scoreFilter, setScoreFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("resume-analysis");
-  const [bulkResults, setBulkResults] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [files, setFiles] = useState<File[]>([]);
+  const [jobDescription, setJobDescription] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [showUpload, setShowUpload] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [bulkResults, setBulkResults] = useState<any[]>([]);
 
-  // Mock data - replace with real API calls
-  const stats = {
-    resumesAnalyzed: 0, // This should come from API
-    jobDescriptions: 0, // This should come from API
-    matchesCreated: 0, // This should come from API
-    reportsGenerated: 0, // This should come from API
-    timeSaved: 0 // This should come from API in hours
-  };
-
-  const mockResumes = []; // This should come from API
-  const mockJDs = []; // This should come from API
-  const mockHistory = []; // This should come from API
+  // Get user email on component mount
+  useEffect(() => {
+    // In a real app, this would come from authentication context or API
+    const email = localStorage.getItem('userEmail') || 'john.doe@company.com';
+    setUserEmail(email);
+  }, []);
 
   const handleLogoClick = () => {
-    // Check if user is logged in (has token)
-    const token = localStorage.getItem('token');
-    if (token) {
-      // User is logged in, stay on dashboard
-      navigate('/dashboard');
-    } else {
-      // User is not logged in, redirect to home
-      navigate('/');
-    }
+    // Since user is logged in, redirect to home page
+    navigate('/');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account.",
+    });
     navigate('/');
   };
 
-  const handleNavigateToSection = (sectionId: string) => {
-    setActiveTab(sectionId);
-    // Scroll to the tabs section smoothly
-    setTimeout(() => {
-      const tabsSection = document.querySelector('[role="tablist"]');
-      if (tabsSection) {
-        tabsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files || []);
+    setFiles(prev => [...prev, ...selectedFiles]);
+    
+    // Simulate upload progress
+    setUploadProgress(0);
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          toast({
+            title: "Files uploaded successfully!",
+            description: `${selectedFiles.length} resume(s) uploaded and ready for analysis.`,
+          });
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 200);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleJDUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
-      toast({
-        title: "Resume uploaded",
-        description: `${file.name} ready for analysis.`,
-      });
+      setShowUpload(true);
+      // Simulate reading file content
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setJobDescription(e.target?.result as string || "Job description content will appear here...");
+      };
+      reader.readAsText(file);
     }
   };
 
-  const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setBulkFiles(files);
+  const confirmJDUpload = () => {
+    setShowUpload(false);
+    // Simulate upload progress
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 20;
+      setUploadProgress(progress);
+      if (progress >= 100) {
+        clearInterval(interval);
+        toast({
+          title: "Job description uploaded!",
+          description: "JD has been processed and is ready for matching.",
+        });
+        setUploadProgress(0);
+      }
+    }, 300);
+  };
+
+  const handleBulkAnalysis = async () => {
+    if (files.length === 0) {
+      toast({
+        title: "No files selected",
+        description: "Please upload resumes first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    
+    // Simulate AI analysis
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Mock results
+    const mockResults = files.map((file, index) => ({
+      id: `resume-${index}`,
+      fileName: file.name,
+      candidateName: `Candidate ${index + 1}`,
+      jobFitScore: Math.floor(Math.random() * 40) + 60, // 60-100 range
+      matchingSkills: ["JavaScript", "React", "Node.js", "Python", "AWS"].slice(0, Math.floor(Math.random() * 3) + 2),
+      missingSkills: ["Docker", "Kubernetes", "GraphQL"].slice(0, Math.floor(Math.random() * 2) + 1),
+      experienceMatch: `${Math.floor(Math.random() * 5) + 3}+ years`,
+      location: ["New York", "San Francisco", "Remote", "London"][Math.floor(Math.random() * 4)],
+      yearsOfExperience: Math.floor(Math.random() * 8) + 2
+    }));
+
+    setBulkResults(mockResults.sort((a, b) => b.jobFitScore - a.jobFitScore));
+    setIsAnalyzing(false);
+    
     toast({
-      title: "Bulk upload",
-      description: `${files.length} resumes uploaded for bulk analysis.`,
+      title: "Analysis complete!",
+      description: `${files.length} resumes analyzed and ranked by fit score.`,
     });
   };
 
-  const handleAnalyzeResume = () => {
-    if (selectedFile) {
-      // Call API to analyze resume
-      toast({
-        title: "Analysis started",
-        description: "Resume analysis is in progress...",
-      });
-    } else {
-      toast({
-        title: "No file selected",
-        description: "Please upload a resume first.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSaveJobDescription = () => {
-    if (jobTitle && jobDescription) {
-      // Call API to save job description
-      toast({
-        title: "Job description saved",
-        description: "Job description has been saved successfully.",
-      });
-      setJobTitle("");
-      setCompany("");
-      setJobDescription("");
-    } else {
-      toast({
-        title: "Missing information",
-        description: "Please fill in job title and description.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleExtractJD = (platform: string) => {
-    if (linkedinUrl.trim()) {
-      // Call API to extract JD
-      toast({
-        title: `${platform} extraction`,
-        description: `Extracting job description from ${platform}...`,
-      });
-    } else {
-      toast({
-        title: "URL required",
-        description: "Please enter a job posting URL.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleGenerateMatch = () => {
-    if (selectedResume && selectedJD) {
-      // Call API to generate match
-      toast({
-        title: "Match analysis",
-        description: "Generating detailed match analysis...",
-      });
-    } else {
-      toast({
-        title: "Selection required",
-        description: "Please select both resume and job description.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleBulkMatch = () => {
-    if (bulkFiles.length > 0) {
-      // Mock results for demonstration
-      const mockResults = bulkFiles.map((file, index) => ({
-        id: `result-${index}`,
-        fileName: file.name,
-        candidateName: `Candidate ${index + 1}`,
-        jobFitScore: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
-        matchingSkills: ['React', 'TypeScript', 'Node.js'].slice(0, Math.floor(Math.random() * 3) + 1),
-        missingSkills: ['AWS', 'Docker', 'GraphQL'].slice(0, Math.floor(Math.random() * 2) + 1),
-        experienceMatch: ['Junior', 'Mid-level', 'Senior'][Math.floor(Math.random() * 3)],
-        yearsOfExperience: Math.floor(Math.random() * 8) + 2,
-        location: ['New York', 'San Francisco', 'Remote'][Math.floor(Math.random() * 3)],
-      }));
-      
-      setBulkResults(mockResults.sort((a, b) => b.jobFitScore - a.jobFitScore));
-      
-      toast({
-        title: "Bulk analysis completed",
-        description: `Analyzed ${bulkFiles.length} resumes successfully.`,
-      });
-    } else {
-      toast({
-        title: "No resumes uploaded",
-        description: "Please upload resumes for bulk analysis.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleExport = (format: 'csv' | 'pdf', section: string) => {
-    // Call API to export data
-    toast({
-      title: "Export started",
-      description: `Exporting ${section} data as ${format.toUpperCase()}...`,
-    });
+  const handleSingleAnalysis = (file: File) => {
+    navigate('/analyze', { state: { file } });
   };
 
   const handleViewDetails = (resumeId: string) => {
     toast({
-      title: "Viewing details",
+      title: "View Details",
       description: "Opening detailed analysis view...",
     });
   };
 
   const handleDownload = (resumeId: string) => {
     toast({
-      title: "Downloading",
-      description: "Downloading resume and analysis report...",
+      title: "Download Started",
+      description: "Resume is being downloaded...",
     });
   };
-
-  const statCards = [
-    { 
-      title: "Resumes Analyzed", 
-      value: stats.resumesAnalyzed.toString(), 
-      icon: <FileText className="w-6 h-6" />,
-      color: "text-cyan-400"
-    },
-    { 
-      title: "Job Descriptions", 
-      value: stats.jobDescriptions.toString(), 
-      icon: <Database className="w-6 h-6" />,
-      color: "text-green-400"
-    },
-    { 
-      title: "Matches Created", 
-      value: stats.matchesCreated.toString(), 
-      icon: <Target className="w-6 h-6" />,
-      color: "text-blue-400"
-    },
-    { 
-      title: "Reports Generated", 
-      value: stats.reportsGenerated.toString(), 
-      icon: <BarChart3 className="w-6 h-6" />,
-      color: "text-purple-400"
-    }
-  ];
-
-  const actionCards = [
-    {
-      title: "Resume Analysis Engine",
-      description: "Upload and analyze candidate resumes with AI-powered insights",
-      icon: <Upload className="w-8 h-8 text-cyan-400" />,
-      color: "text-cyan-400",
-      bgColor: "bg-cyan-500 hover:bg-cyan-600",
-      sectionId: "resume-analysis"
-    },
-    {
-      title: "Upload Job Description",
-      description: "Add job descriptions for matching analysis",
-      icon: <FileText className="w-8 h-8 text-green-400" />,
-      color: "text-green-400",
-      bgColor: "bg-green-500 hover:bg-green-600",
-      sectionId: "job-desc"
-    },
-    {
-      title: "JD Extractor",
-      description: "Extract job descriptions from LinkedIn, Indeed, and Google Jobs",
-      icon: <LinkIcon className="w-8 h-8 text-blue-400" />,
-      color: "text-blue-400",
-      bgColor: "bg-blue-500 hover:bg-blue-600",
-      sectionId: "jd-extractor"
-    },
-    {
-      title: "Match Analysis",
-      description: "Compare resumes with job descriptions for detailed analysis",
-      icon: <Target className="w-8 h-8 text-orange-400" />,
-      color: "text-orange-400",
-      bgColor: "bg-orange-500 hover:bg-orange-600",
-      sectionId: "match-analysis"
-    },
-    {
-      title: "JD vs Resume",
-      description: "Direct comparison between job description and resume",
-      icon: <BarChart3 className="w-8 h-8 text-purple-400" />,
-      color: "text-purple-400",
-      bgColor: "bg-purple-500 hover:bg-purple-600",
-      sectionId: "jd-vs-resume"
-    },
-    {
-      title: "Recruit",
-      description: "Bulk resume analysis and candidate matching for recruitment",
-      icon: <Users className="w-8 h-8 text-pink-400" />,
-      color: "text-pink-400",
-      bgColor: "bg-pink-500 hover:bg-pink-600",
-      sectionId: "recruit"
-    },
-    {
-      title: "History",
-      description: "View and manage all analyzed resumes with filtering",
-      icon: <History className="w-8 h-8 text-yellow-400" />,
-      color: "text-yellow-400",
-      bgColor: "bg-yellow-500 hover:bg-yellow-600",
-      sectionId: "history"
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
-      <header className="bg-black/20 border-b border-purple-500/20 backdrop-blur-sm sticky top-0 z-50">
+      <header className="bg-black/20 border-b border-purple-500/20 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={handleLogoClick}
-                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-              >
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">S</span>
-                </div>
-                <span className="text-xl font-bold text-white">SkillSync AI</span>
-              </button>
-              <div className="hidden md:block text-gray-400">|</div>
-              <div className="hidden md:block text-white font-medium">Dashboard</div>
-            </div>
+          <div className="flex items-center justify-between h-16">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
+              </div>
+              <span className="text-xl font-bold text-white">SkillSync AI</span>
+            </button>
             
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-gray-300">
                 <User className="w-4 h-4" />
-                <span className="hidden sm:inline">user@example.com</span>
+                <span className="text-sm">{userEmail}</span>
               </div>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-300 hover:text-white hover:bg-white/10 border border-transparent hover:border-purple-500/30 transition-all duration-300 backdrop-blur-sm"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Logout</span>
+                Logout
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
-        {/* Welcome Message */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-400 text-sm sm:text-base">Welcome to your SkillSync AI control center. Manage resumes, analyze job fits, and generate insights.</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome to SkillSync AI</h1>
+          <p className="text-gray-400">Analyze resumes, match candidates, and make smarter hiring decisions with AI.</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {statCards.map((stat, index) => (
-            <Card key={index} className="bg-black/20 border-purple-500/20 hover:border-purple-500/40 transition-all">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-xs sm:text-sm">{stat.title}</p>
-                    <p className={`text-xl sm:text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-                  </div>
-                  <div className={`${stat.color} hidden sm:block`}>
-                    {stat.icon}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Quick Stats */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-black/20 border-purple-500/20">
+            <CardContent className="p-6 text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-500/20 rounded-lg mx-auto mb-3">
+                <FileText className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">{files.length}</h3>
+              <p className="text-gray-400 text-sm">Resumes Uploaded</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black/20 border-purple-500/20">
+            <CardContent className="p-6 text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-green-500/20 rounded-lg mx-auto mb-3">
+                <CheckCircle className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">{bulkResults.length}</h3>
+              <p className="text-gray-400 text-sm">Analyzed</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black/20 border-purple-500/20">
+            <CardContent className="p-6 text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-purple-500/20 rounded-lg mx-auto mb-3">
+                <TrendingUp className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">
+                {bulkResults.length > 0 ? Math.max(...bulkResults.map(r => r.jobFitScore)) : 0}%
+              </h3>
+              <p className="text-gray-400 text-sm">Best Match</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black/20 border-purple-500/20">
+            <CardContent className="p-6 text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-yellow-500/20 rounded-lg mx-auto mb-3">
+                <Clock className="w-6 h-6 text-yellow-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">2.3s</h3>
+              <p className="text-gray-400 text-sm">Avg Analysis Time</p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Action Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {actionCards.map((card, index) => (
-            <Card 
-              key={index} 
-              className="bg-black/20 border-purple-500/20 hover:border-purple-500/40 transition-all group cursor-pointer"
-              onClick={() => handleNavigateToSection(card.sectionId)}
-            >
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  {card.icon}
-                  <ArrowRight className={`w-5 h-5 text-gray-400 group-hover:${card.color} transition-colors`} />
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{card.title}</h3>
-                <p className="text-gray-400 text-xs sm:text-sm mb-4 line-clamp-2">{card.description}</p>
-                <Button className={`w-full ${card.bgColor} text-white text-sm`}>
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Quick Start Guide */}
-        <Card className="bg-black/20 border-purple-500/20 mb-6 sm:mb-8">
-          <CardHeader>
-            <CardTitle className="text-white text-lg sm:text-xl">Quick Start Guide</CardTitle>
-            <CardDescription className="text-gray-400 text-sm sm:text-base">
-              New to SkillSync AI? Follow these steps to get started with your first analysis.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">
-                  1
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Upload Resume</h3>
-                <p className="text-gray-400 text-sm">Start by uploading a candidate's resume for AI analysis</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">
-                  2
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Add Job Description</h3>
-                <p className="text-gray-400 text-sm">Upload or extract job descriptions for comparison</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">
-                  3
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">Generate Match</h3>
-                <p className="text-gray-400 text-sm">Create detailed matching analysis and export reports</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="overflow-x-auto scrollbar-thin scrollbar-track-gray-700 scrollbar-thumb-purple-500">
-            <TabsList className="bg-black/20 border-purple-500/20 grid grid-cols-7 w-full min-w-[800px]">
-              <TabsTrigger value="resume-analysis" className="data-[state=active]:bg-purple-500/20 text-xs sm:text-sm px-2 sm:px-4">
-                Resume Analysis Engine
-              </TabsTrigger>
-              <TabsTrigger value="job-desc" className="data-[state=active]:bg-purple-500/20 text-xs sm:text-sm px-2 sm:px-4">
-                Upload Job Description
-              </TabsTrigger>
-              <TabsTrigger value="jd-extractor" className="data-[state=active]:bg-purple-500/20 text-xs sm:text-sm px-2 sm:px-4">
-                JD Extractor
-              </TabsTrigger>
-              <TabsTrigger value="match-analysis" className="data-[state=active]:bg-purple-500/20 text-xs sm:text-sm px-2 sm:px-4">
-                Match Analysis
-              </TabsTrigger>
-              <TabsTrigger value="jd-vs-resume" className="data-[state=active]:bg-purple-500/20 text-xs sm:text-sm px-2 sm:px-4">
-                JD vs Resume
-              </TabsTrigger>
-              <TabsTrigger value="recruit" className="data-[state=active]:bg-purple-500/20 text-xs sm:text-sm px-2 sm:px-4">
-                Recruit
-              </TabsTrigger>
-              <TabsTrigger value="history" className="data-[state=active]:bg-purple-500/20 text-xs sm:text-sm px-2 sm:px-4">
-                History
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Resume Analysis Engine */}
-          <TabsContent value="resume-analysis">
-            <Card className="bg-black/20 border-purple-500/20">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                  <div>
-                    <CardTitle className="text-white">Resume Analysis Engine</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Upload and analyze candidate resumes with AI-powered insights
-                    </CardDescription>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleExport('csv', 'resume analysis')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      CSV
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('pdf', 'resume analysis')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-6 sm:p-8 text-center hover:border-purple-500/50 transition-colors">
-                  <Upload className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="resume-upload" className="text-white font-medium cursor-pointer text-lg">
-                        Drop your resume here or click to browse
-                      </Label>
-                      <p className="text-gray-400 text-sm">
-                        Supports PDF, DOC, DOCX files up to 10MB
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
-                      onClick={() => document.getElementById('resume-upload')?.click()}
-                    >
-                      <FolderOpen className="w-4 h-4 mr-2" />
+          <Card className="bg-black/20 border-purple-500/20">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Brain className="w-5 h-5 mr-2 text-purple-400" />
+                Resume Analysis Engine
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Upload resumes for AI-powered analysis and insights
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-6 text-center hover:border-purple-500/50 transition-colors">
+                <Upload className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+                <p className="text-gray-300 mb-3">Drop files here or click to browse</p>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="resume-upload"
+                />
+                <label htmlFor="resume-upload">
+                  <Button 
+                    variant="outline" 
+                    className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:border-purple-500 cursor-pointer"
+                    asChild
+                  >
+                    <span>
+                      <Plus className="w-4 h-4 mr-2" />
                       Browse Files
-                    </Button>
-                  </div>
-                  <Input
-                    id="resume-upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </div>
-                
-                {selectedFile && (
-                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex items-center space-x-3">
-                        <FileText className="w-5 h-5 text-purple-400" />
-                        <div>
-                          <p className="text-white font-medium">{selectedFile.name}</p>
-                          <p className="text-gray-400 text-sm">
-                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={handleAnalyzeResume}
-                        className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 w-full sm:w-auto"
-                      >
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Analyze
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    </span>
+                  </Button>
+                </label>
+              </div>
 
-          {/* Upload Job Description */}
-          <TabsContent value="job-desc">
-            <Card className="bg-black/20 border-purple-500/20">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-white">Upload Job Description</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Add job descriptions for matching analysis. Upload as text or file format.
-                    </CardDescription>
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Uploading...</span>
+                    <span className="text-purple-400">{uploadProgress}%</span>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => navigate('/jd-history')}>
-                      <History className="w-4 h-4 mr-2" />
-                      Show History
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('csv', 'job descriptions')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      CSV
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('pdf', 'job descriptions')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
+                  <Progress value={uploadProgress} className="h-2" />
+                </div>
+              )}
+
+              {files.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-white font-medium">Uploaded Files ({files.length})</h4>
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {files.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-black/20 rounded text-sm">
+                        <span className="text-gray-300 truncate">{file.name}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleSingleAnalysis(file)}
+                          className="text-purple-400 hover:text-white hover:bg-purple-500/20"
+                        >
+                          <Search className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Upload Method Selection */}
-                <div className="space-y-4">
-                  <Label className="text-gray-300 text-lg font-semibold">Upload Method</Label>
-                  <p className="text-gray-400 text-sm">Choose how you'd like to upload the job description</p>
-                  <div className="flex space-x-4">
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Job Description Upload */}
+          <Card className="bg-black/20 border-purple-500/20">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Target className="w-5 h-5 mr-2 text-green-400" />
+                Upload JD
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Add job descriptions for candidate matching
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="border-2 border-dashed border-green-500/30 rounded-lg p-6 text-center hover:border-green-500/50 transition-colors">
+                <FileText className="w-8 h-8 text-green-400 mx-auto mb-3" />
+                <p className="text-gray-300 mb-3">Upload job description file</p>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  onChange={handleJDUpload}
+                  className="hidden"
+                  id="jd-upload"
+                />
+                <label htmlFor="jd-upload">
+                  <Button 
+                    variant="outline" 
+                    className="border-green-500/50 text-green-400 hover:bg-green-500/10 hover:border-green-500 cursor-pointer"
+                    asChild
+                  >
+                    <span>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Browse Files
+                    </span>
+                  </Button>
+                </label>
+              </div>
+
+              {jobDescription && (
+                <div className="space-y-3">
+                  <textarea
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    placeholder="Paste or edit job description here..."
+                    className="w-full h-24 p-3 bg-black/20 border border-gray-600 rounded-lg text-white placeholder-gray-400 resize-none"
+                  />
+                  {showUpload && (
                     <Button
-                      variant={uploadMethod === "text" ? "default" : "outline"}
-                      onClick={() => setUploadMethod("text")}
-                      className={uploadMethod === "text" ? "bg-cyan-500 hover:bg-cyan-600" : ""}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Text Input
-                    </Button>
-                    <Button
-                      variant={uploadMethod === "file" ? "default" : "outline"}
-                      onClick={() => setUploadMethod("file")}
-                      className={uploadMethod === "file" ? "bg-cyan-500 hover:bg-cyan-600" : ""}
+                      onClick={confirmJDUpload}
+                      className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
                     >
                       <Upload className="w-4 h-4 mr-2" />
-                      File Upload
+                      Upload JD
                     </Button>
-                  </div>
-                </div>
-
-                {uploadMethod === "text" && (
-                  <div className="space-y-6 p-6 bg-slate-800/50 rounded-lg border border-purple-500/20">
-                    <div className="flex items-center space-x-2 text-cyan-400 mb-4">
-                      <FileText className="w-5 h-5" />
-                      <span className="font-semibold">Enter Job Description</span>
-                    </div>
-                    <p className="text-gray-400 text-sm">Fill in the job details and description manually</p>
-                    
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="job-title" className="text-gray-300">Job Title *</Label>
-                        <Input
-                          id="job-title"
-                          placeholder="e.g., Senior Frontend Developer"
-                          value={jobTitle}
-                          onChange={(e) => setJobTitle(e.target.value)}
-                          className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="company" className="text-gray-300">Company</Label>
-                        <Input
-                          id="company"
-                          placeholder="e.g., TechCorp Inc."
-                          value={company}
-                          onChange={(e) => setCompany(e.target.value)}
-                          className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="job-desc" className="text-gray-300">Job Description *</Label>
-                      <Textarea
-                        id="job-desc"
-                        placeholder="Paste the full job description here including requirements, responsibilities, and qualifications..."
-                        value={jobDescription}
-                        onChange={(e) => setJobDescription(e.target.value)}
-                        rows={12}
-                        className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500 resize-none"
-                      />
-                    </div>
-                    
-                    <Button
-                      onClick={handleSaveJobDescription}
-                      className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Save Job Description
-                    </Button>
-                  </div>
-                )}
-
-                {uploadMethod === "file" && (
-                  <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors">
-                    <Upload className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="jd-upload" className="text-white font-medium cursor-pointer text-lg">
-                          Drop your job description file here or click to browse
-                        </Label>
-                        <p className="text-gray-400 text-sm">
-                          Supports PDF, DOC, DOCX, TXT files up to 10MB
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
-                        onClick={() => document.getElementById('jd-upload')?.click()}
-                      >
-                        <FolderOpen className="w-4 h-4 mr-2" />
-                        Browse Files
-                      </Button>
-                    </div>
-                    <Input
-                      id="jd-upload"
-                      type="file"
-                      accept=".pdf,.doc,.docx,.txt"
-                      className="hidden"
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* JD Extractor */}
-          <TabsContent value="jd-extractor">
-            <Card className="bg-black/20 border-purple-500/20">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-white">JD Extractor</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Extract job descriptions directly from LinkedIn or Indeed job posting URLs.
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleExport('csv', 'extracted jds')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      CSV
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('pdf', 'extracted jds')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* LinkedIn Extractor */}
-                <div className="p-6 bg-slate-800/50 rounded-lg border border-purple-500/20">
-                  <div className="flex items-center space-x-2 text-blue-400 mb-4">
-                    <LinkIcon className="w-5 h-5" />
-                    <span className="font-semibold">Job URL Extractor</span>
-                  </div>
-                  <p className="text-gray-400 text-sm mb-4">Enter a LinkedIn or Indeed job posting URL to extract the job description</p>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="job-url" className="text-gray-300">Job Posting URL</Label>
-                      <Input
-                        id="job-url"
-                        placeholder="https://www.linkedin.com/jobs/view/1234567890 or https://www.indeed.com/viewjob?jk=..."
-                        value={linkedinUrl}
-                        onChange={(e) => setLinkedinUrl(e.target.value)}
-                        className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500"
-                      />
-                    </div>
-                    
-                    <div className="flex space-x-4">
-                      <Button
-                        onClick={() => handleExtractJD('LinkedIn')}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        <LinkIcon className="w-4 h-4 mr-2" />
-                        Extract from LinkedIn
-                      </Button>
-                      <Button
-                        onClick={() => handleExtractJD('Indeed')}
-                        className="flex-1 bg-blue-800 hover:bg-blue-900 text-white"
-                      >
-                        <LinkIcon className="w-4 h-4 mr-2" />
-                        Extract from Indeed
-                      </Button>
-                      <Button
-                        onClick={() => handleExtractJD('Google Jobs')}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <LinkIcon className="w-4 h-4 mr-2" />
-                        Extract from Google Jobs
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* How to Use Guide */}
-                <div className="p-6 bg-slate-800/50 rounded-lg border border-purple-500/20">
-                  <h3 className="text-cyan-400 font-semibold mb-4">How to Use</h3>
-                  <ol className="space-y-2 text-gray-300 text-sm">
-                    <li className="flex items-start space-x-2">
-                      <span className="flex-shrink-0 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">1</span>
-                      <span>Navigate to a LinkedIn or Indeed job posting</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="flex-shrink-0 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">2</span>
-                      <span>Copy the job posting URL from your browser's address bar</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="flex-shrink-0 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</span>
-                      <span>Paste the URL into the input field above</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="flex-shrink-0 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">4</span>
-                      <span>Click "Extract Job Description" to automatically extract the content</span>
-                    </li>
-                    <li className="flex items-start space-x-2">
-                      <span className="flex-shrink-0 w-6 h-6 bg-cyan-500 rounded-full flex items-center justify-center text-white text-xs font-bold">5</span>
-                      <span>Review the extracted content and save it to your collection</span>
-                    </li>
-                  </ol>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Match Analysis */}
-          <TabsContent value="match-analysis">
-            <Card className="bg-black/20 border-purple-500/20">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-white">Match Analysis</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Compare candidate resumes with job descriptions to get detailed matching analysis and fit scores.
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleExport('csv', 'match analysis')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      CSV
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('pdf', 'match analysis')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-8">
-                  {/* Selection Panel */}
-                  <div className="space-y-6 p-6 bg-slate-800/50 rounded-lg border border-purple-500/20">
-                    <div className="flex items-center space-x-2 text-cyan-400 mb-4">
-                      <Target className="w-5 h-5" />
-                      <span className="font-semibold">Select Items to Match</span>
-                    </div>
-                    <p className="text-gray-400 text-sm">Choose a resume and job description for comparison</p>
-                    
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-gray-300">Select Resume</Label>
-                        <Select value={selectedResume} onValueChange={setSelectedResume}>
-                          <SelectTrigger className="bg-black/20 border-purple-500/30 text-white">
-                            <SelectValue placeholder="Choose a resume" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-800 border-purple-500/30">
-                            {mockResumes.length === 0 ? (
-                              <SelectItem value="no-resumes" disabled>No resumes available</SelectItem>
-                            ) : (
-                              mockResumes.map((resume: any) => (
-                                <SelectItem key={resume.id} value={resume.id}>{resume.filename}</SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label className="text-gray-300">Select Job Description</Label>
-                        <Select value={selectedJD} onValueChange={setSelectedJD}>
-                          <SelectTrigger className="bg-black/20 border-purple-500/30 text-white">
-                            <SelectValue placeholder="Choose a job description" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-800 border-purple-500/30">
-                            {mockJDs.length === 0 ? (
-                              <SelectItem value="no-jds" disabled>No job descriptions available</SelectItem>
-                            ) : (
-                              mockJDs.map((jd: any) => (
-                                <SelectItem key={jd.id} value={jd.id}>{jd.title}</SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <Button
-                        onClick={handleGenerateMatch}
-                        className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3"
-                        disabled={!selectedResume || !selectedJD}
-                      >
-                        <Target className="w-4 h-4 mr-2" />
-                        Generate Match
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Results Panel */}
-                  <div className="flex items-center justify-center p-8 bg-slate-800/50 rounded-lg border border-purple-500/20">
-                    <div className="text-center">
-                      <div className="w-24 h-24 mx-auto mb-6 rounded-full border-4 border-cyan-400/20 flex items-center justify-center">
-                        <Target className="w-12 h-12 text-cyan-400" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-white mb-2">No Match Analysis Yet</h3>
-                      <p className="text-gray-400 max-w-md">
-                        Select a resume and job description, then click "Generate Match" to see detailed compatibility analysis.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* JD vs Resume */}
-          <TabsContent value="jd-vs-resume">
-            <Card className="bg-black/20 border-purple-500/20">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-white">JD vs Resume</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Direct comparison between job description and resume with instant analysis
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleExport('csv', 'jd vs resume')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      CSV
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('pdf', 'jd vs resume')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* JD Input */}
-                  <div className="space-y-4">
-                    <Label className="text-gray-300 text-lg font-semibold">Job Description</Label>
-                    <Textarea
-                      placeholder="Paste job description here..."
-                      rows={12}
-                      className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500 resize-none"
-                    />
-                  </div>
-                  
-                  {/* Resume Upload */}
-                  <div className="space-y-4">
-                    <Label className="text-gray-300 text-lg font-semibold">Resume Upload</Label>
-                    <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors h-full flex flex-col justify-center">
-                      <Upload className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="jd-vs-resume-upload" className="text-white font-medium cursor-pointer">
-                            Drop resume here or click to browse
-                          </Label>
-                          <p className="text-gray-400 text-sm">
-                            PDF, DOC, DOCX files up to 10MB
-                          </p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
-                          onClick={() => document.getElementById('jd-vs-resume-upload')?.click()}
-                        >
-                          <FolderOpen className="w-4 h-4 mr-2" />
-                          Browse Files
-                        </Button>
-                      </div>
-                      <Input
-                        id="jd-vs-resume-upload"
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <Button
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white py-3"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Analyze Match
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Recruit */}
-          <TabsContent value="recruit">
-            <Card className="bg-black/20 border-purple-500/20">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-white">Recruit</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Bulk resume analysis and candidate matching for recruitment teams
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleExport('csv', 'recruitment')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      CSV
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('pdf', 'recruitment')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Bulk Resume Upload */}
-                  <div className="space-y-4">
-                    <Label className="text-gray-300 text-lg font-semibold">Bulk Resume Upload</Label>
-                    <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors">
-                      <Users className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="bulk-upload" className="text-white font-medium cursor-pointer text-lg">
-                            Drop multiple resumes here or click to browse
-                          </Label>
-                          <p className="text-gray-400 text-sm">
-                            Select multiple PDF, DOC, DOCX files (up to 50 files)
-                          </p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
-                          onClick={() => document.getElementById('bulk-upload')?.click()}
-                        >
-                          <FolderOpen className="w-4 h-4 mr-2" />
-                          Browse Files
-                        </Button>
-                      </div>
-                      <Input
-                        id="bulk-upload"
-                        type="file"
-                        accept=".pdf,.doc,.docx"
-                        multiple
-                        onChange={handleBulkUpload}
-                        className="hidden"
-                      />
-                    </div>
-                    {bulkFiles.length > 0 && (
-                      <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
-                        <p className="text-purple-400 font-medium">{bulkFiles.length} files selected</p>
-                        <p className="text-gray-400 text-sm">Ready for bulk analysis</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Job Description */}
-                  <div className="space-y-4">
-                    <Label className="text-gray-300 text-lg font-semibold">Job Description</Label>
-                    <Tabs defaultValue="text" className="space-y-4">
-                      <TabsList className="bg-black/20 border-purple-500/20 grid grid-cols-3 w-full">
-                        <TabsTrigger value="text">Text Input</TabsTrigger>
-                        <TabsTrigger value="file">File Upload</TabsTrigger>
-                        <TabsTrigger value="url">Extract URL</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="text">
-                        <Textarea
-                          placeholder="Paste job description..."
-                          rows={8}
-                          className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500"
-                        />
-                      </TabsContent>
-                      <TabsContent value="file">
-                        <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-6 text-center">
-                          <FileText className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                          <p className="text-white text-sm">Upload JD file</p>
-                          <Button
-                            variant="outline"
-                            className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30 mt-2"
-                          >
-                            <FolderOpen className="w-4 h-4 mr-2" />
-                            Browse Files
-                          </Button>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="url">
-                        <Input
-                          placeholder="LinkedIn/Indeed job URL..."
-                          className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500"
-                        />
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-                </div>
-                
-                <Button
-                  onClick={handleBulkMatch}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white py-3"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Match to Job
-                </Button>
-                
-                {/* Bulk Results */}
-                <div className="bg-slate-800/50 rounded-lg border border-purple-500/20 p-6">
-                  <BulkResumeResults
-                    results={bulkResults}
-                    onViewDetails={handleViewDetails}
-                    onDownload={handleDownload}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* History */}
-          <TabsContent value="history">
-            <Card className="bg-black/20 border-purple-500/20">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-white">Resume History</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      View and manage all analyzed resumes with filtering and version control.
-                    </CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => handleExport('csv', 'history')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      CSV
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleExport('pdf', 'history')}>
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Filters */}
-                <div className="p-6 bg-slate-800/50 rounded-lg border border-purple-500/20">
-                  <div className="flex items-center space-x-2 text-cyan-400 mb-4">
-                    <Filter className="w-5 h-5" />
-                    <span className="font-semibold">Filters</span>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">Search by filename</Label>
-                      <div className="relative">
-                        <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                        <Input
-                          placeholder="Search resumes..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-10 bg-black/20 border-purple-500/30 text-white placeholder:text-gray-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">Date Range</Label>
-                      <Select value={dateFilter} onValueChange={setDateFilter}>
-                        <SelectTrigger className="bg-black/20 border-purple-500/30 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-purple-500/30">
-                          <SelectItem value="all">All Time</SelectItem>
-                          <SelectItem value="today">Today</SelectItem>
-                          <SelectItem value="week">This Week</SelectItem>
-                          <SelectItem value="month">This Month</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label className="text-gray-300">Fit Score</Label>
-                      <Select value={scoreFilter} onValueChange={setScoreFilter}>
-                        <SelectTrigger className="bg-black/20 border-purple-500/30 text-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-800 border-purple-500/30">
-                          <SelectItem value="all">All Scores</SelectItem>
-                          <SelectItem value="high">90%+</SelectItem>
-                          <SelectItem value="medium">70-89%</SelectItem>
-                          <SelectItem value="low">Below 70%</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* History List */}
-                <div className="space-y-4">
-                  {mockHistory.length === 0 ? (
-                    <div className="text-center py-12 bg-slate-800/50 rounded-lg border border-purple-500/20">
-                      <History className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                      <h3 className="text-xl font-semibold text-gray-400 mb-2">No analysis history yet</h3>
-                      <p className="text-gray-500">
-                        Upload your first resume to get started with AI-powered analysis.
-                      </p>
-                    </div>
-                  ) : (
-                    mockHistory.map((item: any, index: number) => (
-                      <div key={index} className="bg-slate-800/50 rounded-lg border border-purple-500/20 p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-white font-medium">{item.filename}</span>
-                              <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded-full">
-                                v{item.version}
-                              </span>
-                            </div>
-                            <div className="text-gray-400 text-sm">
-                              {item.date} • {item.match}% Match
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              item.score >= 90 ? 'bg-green-500/20 text-green-400' :
-                              item.score >= 70 ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-red-500/20 text-red-400'
-                            }`}>
-                              {item.score}%
-                            </div>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Download className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              )}
+
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Processing JD...</span>
+                    <span className="text-green-400">{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2" />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Bulk Analysis */}
+          <Card className="bg-black/20 border-purple-500/20">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Users className="w-5 h-5 mr-2 text-cyan-400" />
+                Recruit
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Bulk analyze and rank candidates by job fit
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center py-6">
+                <BarChart3 className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
+                <h4 className="text-white font-medium mb-2">Bulk Candidate Analysis</h4>
+                <p className="text-gray-400 text-sm mb-4">
+                  Compare multiple candidates against job requirements
+                </p>
+                <Button
+                  onClick={handleBulkAnalysis}
+                  disabled={isAnalyzing || files.length === 0}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 mr-2" />
+                      Start Analysis
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {files.length === 0 && (
+                <div className="text-center p-4 border border-orange-500/30 rounded-lg bg-orange-500/10">
+                  <p className="text-orange-400 text-sm">Upload resumes to enable bulk analysis</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Results Section */}
+        {bulkResults.length > 0 && (
+          <div className="mt-8">
+            <BulkResumeResults
+              results={bulkResults}
+              onViewDetails={handleViewDetails}
+              onDownload={handleDownload}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

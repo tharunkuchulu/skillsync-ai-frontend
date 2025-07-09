@@ -23,23 +23,33 @@ const Index = () => {
   const features = [
     {
       icon: <Upload className="w-6 h-6" />,
-      title: "Resume Analysis Engine",
-      description: "Upload and analyze candidate resumes with AI-powered insights and scoring."
+      title: "AI Resume Parsing",
+      description: "Advanced NLP extracts skills, experiences, and insights from any resume format with 95% accuracy."
     },
     {
       icon: <Target className="w-6 h-6" />,
-      title: "Smart Matching",
-      description: "Compare resumes with job descriptions for detailed compatibility analysis."
+      title: "Smart Job Matching",
+      description: "Compare candidates with job descriptions from manual upload or LinkedIn/Indeed links."
     },
     {
       icon: <BarChart3 className="w-6 h-6" />,
-      title: "Advanced Analytics",
-      description: "Get comprehensive reports with skill gaps, experience matching, and recommendations."
+      title: "Job Fit Scoring",
+      description: "Get instant compatibility scores and detailed skill gap analysis for every candidate."
+    },
+    {
+      icon: <Clock className="w-6 h-6" />,
+      title: "Resume Versioning",
+      description: "Track resume history, filter by criteria, and maintain organized candidate records."
     },
     {
       icon: <Users className="w-6 h-6" />,
-      title: "Bulk Processing",
-      description: "Process multiple resumes simultaneously for efficient recruitment workflows."
+      title: "Export & Reports",
+      description: "Generate PDF reports and export data to CSV for seamless workflow integration."
+    },
+    {
+      icon: <Shield className="w-6 h-6" />,
+      title: "Bias-Free Assessment",
+      description: "Ensure fair, compliant evaluations with our bias-mitigated AI algorithms."
     }
   ];
 
@@ -108,8 +118,7 @@ const Index = () => {
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
               <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors">How It Works</a>
-              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-              <a href="#testimonials" className="text-gray-300 hover:text-white transition-colors">Testimonials</a>
+              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">About</a>
             </nav>
             
             <div className="flex items-center space-x-4">
@@ -133,53 +142,94 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="pt-20 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <Badge variant="secondary" className="mb-6 bg-purple-500/20 text-purple-300 border-purple-500/30">
-            AI-Powered Recruitment
-          </Badge>
-          
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-            Transform Your
-            <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent block">
-              Hiring Process
-            </span>
-          </h1>
-          
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-            SkillSync AI uses advanced artificial intelligence to analyze resumes, match candidates to job requirements, 
-            and provide detailed insights that help you make better hiring decisions faster.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Link to="/register">
-              <Button size="lg" className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-8 py-4 text-lg">
-                Start Free Trial
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10 hover:border-purple-500 px-8 py-4 text-lg backdrop-blur-sm"
-              >
-                Watch Demo
-              </Button>
-            </Link>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <Badge variant="secondary" className="mb-6 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                Your Privacy is Our Priority
+              </Badge>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                Sync Skills with
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent block">
+                  Perfect Matches
+                </span>
+              </h1>
+              
+              <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+                AI-powered resume analysis that matches candidates with job requirements. Get instant fit scores, skill gap analysis, and actionable hiring insights.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Link to="/register">
+                  <Button size="lg" className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-8 py-4 text-lg">
+                    Get Started
+                  </Button>
+                </Link>
+                <Link to="/login">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10 hover:border-purple-500 px-8 py-4 text-lg backdrop-blur-sm"
+                  >
+                    Explore Dashboard
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="flex items-center gap-8 text-gray-400">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <span>Your Privacy is Our Priority</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <span>100% Free to Use</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-black/20 border-purple-500/20 p-6 text-center">
+                <h3 className="text-3xl font-bold text-green-400 mb-2">95%</h3>
+                <p className="text-gray-300">Match</p>
+              </Card>
+              <Card className="bg-black/20 border-purple-500/20 p-6 text-center">
+                <h3 className="text-3xl font-bold text-blue-400 mb-2">10x</h3>
+                <p className="text-gray-300">Faster Screening</p>
+              </Card>
+              <Card className="bg-black/20 border-purple-500/20 p-6 text-center">
+                <h3 className="text-3xl font-bold text-purple-400 mb-2">50K+</h3>
+                <p className="text-gray-300">Resumes Analyzed</p>
+              </Card>
+              <Card className="bg-black/20 border-purple-500/20 p-6 text-center">
+                <h3 className="text-3xl font-bold text-cyan-400 mb-2">98%</h3>
+                <p className="text-gray-300">Customer Satisfaction</p>
+              </Card>
+            </div>
           </div>
-          
-          <div className="flex flex-wrap justify-center items-center gap-8 text-gray-400">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <span>No credit card required</span>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-black/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div>
+              <h3 className="text-4xl font-bold text-blue-400 mb-2">95%</h3>
+              <p className="text-gray-300">Parsing Accuracy</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <span>14-day free trial</span>
+            <div>
+              <h3 className="text-4xl font-bold text-purple-400 mb-2">10x</h3>
+              <p className="text-gray-300">Faster Screening</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <span>Cancel anytime</span>
+            <div>
+              <h3 className="text-4xl font-bold text-cyan-400 mb-2">50K+</h3>
+              <p className="text-gray-300">Resumes Analyzed</p>
+            </div>
+            <div>
+              <h3 className="text-4xl font-bold text-green-400 mb-2">98%</h3>
+              <p className="text-gray-300">Customer Satisfaction</p>
             </div>
           </div>
         </div>
@@ -193,11 +243,11 @@ const Index = () => {
               Powerful AI-Driven Features
             </h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Everything you need to streamline your recruitment process and find the perfect candidates.
+              Transform your hiring process with intelligent resume parsing, skill matching, and comprehensive candidate analysis.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="bg-black/20 border-purple-500/20 hover:border-purple-500/40 transition-all hover:scale-105">
                 <CardHeader>
@@ -290,7 +340,7 @@ const Index = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-black/10">
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-black/10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
@@ -329,13 +379,13 @@ const Index = () => {
             Ready to Transform Your Hiring?
           </h2>
           <p className="text-xl text-gray-300 mb-8">
-            Join thousands of HR professionals who have already revolutionized their recruitment process with SkillSync AI.
+            Join thousands of recruiters using SkillSync AI to make better hiring decisions faster.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to="/register">
               <Button size="lg" className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-8 py-4 text-lg">
-                Start Your Free Trial
+                Get Started
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
@@ -345,7 +395,7 @@ const Index = () => {
                 variant="outline" 
                 className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10 hover:border-purple-500 px-8 py-4 text-lg backdrop-blur-sm"
               >
-                Sign In
+                Explore Features
               </Button>
             </Link>
           </div>
@@ -366,7 +416,7 @@ const Index = () => {
                 </span>
               </div>
               <p className="text-gray-400">
-                AI-powered recruitment platform for modern HR teams.
+                Syncing candidate skills with job requirements through AI-powered analysis.
               </p>
             </div>
             
@@ -374,35 +424,28 @@ const Index = () => {
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Dashboard</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Analysis</a></li>
               </ul>
             </div>
             
             <div>
               <h4 className="text-white font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Login</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-              </ul>
+              <p className="text-gray-400 text-sm">
+                © 2024 SkillSync AI. All rights reserved.
+              </p>
+              <p className="text-gray-500 text-xs mt-4">
+                Built by Tharun Vankayala • Powered by FastAPI + React + OpenRouter AI
+              </p>
             </div>
-          </div>
-          
-          <div className="border-t border-purple-500/20 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 SkillSync AI. All rights reserved.</p>
           </div>
         </div>
       </footer>
