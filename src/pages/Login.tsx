@@ -44,6 +44,13 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = () => {
+    toast({
+      title: "Reset link sent",
+      description: "If an account exists with this email, you'll receive a password reset link.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -106,6 +113,17 @@ const Login = () => {
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
+                </div>
+                
+                {/* Forgot Password Link */}
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="text-sm text-purple-400 hover:text-purple-300 transition-colors underline"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
               </div>
 

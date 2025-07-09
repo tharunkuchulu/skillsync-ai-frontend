@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import BulkResumeResults from "@/components/BulkResumeResults";
 import { 
   Upload, 
   FileText, 
@@ -26,7 +27,8 @@ import {
   Eye,
   Trash2,
   Users,
-  Database
+  Database,
+  FolderOpen
 }  from "lucide-react";
 
 const Dashboard = () => {
@@ -43,6 +45,7 @@ const Dashboard = () => {
   const [dateFilter, setDateFilter] = useState("all");
   const [scoreFilter, setScoreFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("resume-analysis");
+  const [bulkResults, setBulkResults] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -58,6 +61,18 @@ const Dashboard = () => {
   const mockResumes = []; // This should come from API
   const mockJDs = []; // This should come from API
   const mockHistory = []; // This should come from API
+
+  const handleLogoClick = () => {
+    // Check if user is logged in (has token)
+    const token = localStorage.getItem('token');
+    if (token) {
+      // User is logged in, stay on dashboard
+      navigate('/dashboard');
+    } else {
+      // User is not logged in, redirect to home
+      navigate('/');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -164,10 +179,24 @@ const Dashboard = () => {
 
   const handleBulkMatch = () => {
     if (bulkFiles.length > 0) {
-      // Call API for bulk matching
+      // Mock results for demonstration
+      const mockResults = bulkFiles.map((file, index) => ({
+        id: `result-${index}`,
+        fileName: file.name,
+        candidateName: `Candidate ${index + 1}`,
+        jobFitScore: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
+        matchingSkills: ['React', 'TypeScript', 'Node.js'].slice(0, Math.floor(Math.random() * 3) + 1),
+        missingSkills: ['AWS', 'Docker', 'GraphQL'].slice(0, Math.floor(Math.random() * 2) + 1),
+        experienceMatch: ['Junior', 'Mid-level', 'Senior'][Math.floor(Math.random() * 3)],
+        yearsOfExperience: Math.floor(Math.random() * 8) + 2,
+        location: ['New York', 'San Francisco', 'Remote'][Math.floor(Math.random() * 3)],
+      }));
+      
+      setBulkResults(mockResults.sort((a, b) => b.jobFitScore - a.jobFitScore));
+      
       toast({
-        title: "Bulk analysis started",
-        description: `Processing ${bulkFiles.length} resumes for matching...`,
+        title: "Bulk analysis completed",
+        description: `Analyzed ${bulkFiles.length} resumes successfully.`,
       });
     } else {
       toast({
@@ -183,6 +212,20 @@ const Dashboard = () => {
     toast({
       title: "Export started",
       description: `Exporting ${section} data as ${format.toUpperCase()}...`,
+    });
+  };
+
+  const handleViewDetails = (resumeId: string) => {
+    toast({
+      title: "Viewing details",
+      description: "Opening detailed analysis view...",
+    });
+  };
+
+  const handleDownload = (resumeId: string) => {
+    toast({
+      title: "Downloading",
+      description: "Downloading resume and analysis report...",
     });
   };
 
@@ -279,12 +322,15 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              <button 
+                onClick={handleLogoClick}
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              >
                 <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">S</span>
                 </div>
                 <span className="text-xl font-bold text-white">SkillSync AI</span>
-              </div>
+              </button>
               <div className="hidden md:block text-gray-400">|</div>
               <div className="hidden md:block text-white font-medium">Dashboard</div>
             </div>
@@ -446,13 +492,23 @@ const Dashboard = () => {
               <CardContent className="space-y-6">
                 <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-6 sm:p-8 text-center hover:border-purple-500/50 transition-colors">
                   <Upload className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                  <div className="space-y-2">
-                    <Label htmlFor="resume-upload" className="text-white font-medium cursor-pointer">
-                      Drop your resume here or click to browse
-                    </Label>
-                    <p className="text-gray-400 text-sm">
-                      Supports PDF, DOC, DOCX files up to 10MB
-                    </p>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="resume-upload" className="text-white font-medium cursor-pointer text-lg">
+                        Drop your resume here or click to browse
+                      </Label>
+                      <p className="text-gray-400 text-sm">
+                        Supports PDF, DOC, DOCX files up to 10MB
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
+                      onClick={() => document.getElementById('resume-upload')?.click()}
+                    >
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      Browse Files
+                    </Button>
                   </div>
                   <Input
                     id="resume-upload"
@@ -598,13 +654,23 @@ const Dashboard = () => {
                 {uploadMethod === "file" && (
                   <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors">
                     <Upload className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                    <div className="space-y-2">
-                      <Label htmlFor="jd-upload" className="text-white font-medium cursor-pointer">
-                        Drop your job description file here or click to browse
-                      </Label>
-                      <p className="text-gray-400 text-sm">
-                        Supports PDF, DOC, DOCX, TXT files up to 10MB
-                      </p>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="jd-upload" className="text-white font-medium cursor-pointer text-lg">
+                          Drop your job description file here or click to browse
+                        </Label>
+                        <p className="text-gray-400 text-sm">
+                          Supports PDF, DOC, DOCX, TXT files up to 10MB
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
+                        onClick={() => document.getElementById('jd-upload')?.click()}
+                      >
+                        <FolderOpen className="w-4 h-4 mr-2" />
+                        Browse Files
+                      </Button>
                     </div>
                     <Input
                       id="jd-upload"
@@ -856,13 +922,23 @@ const Dashboard = () => {
                     <Label className="text-gray-300 text-lg font-semibold">Resume Upload</Label>
                     <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors h-full flex flex-col justify-center">
                       <Upload className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                      <div className="space-y-2">
-                        <Label htmlFor="jd-vs-resume-upload" className="text-white font-medium cursor-pointer">
-                          Drop resume here or click to browse
-                        </Label>
-                        <p className="text-gray-400 text-sm">
-                          PDF, DOC, DOCX files up to 10MB
-                        </p>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="jd-vs-resume-upload" className="text-white font-medium cursor-pointer">
+                            Drop resume here or click to browse
+                          </Label>
+                          <p className="text-gray-400 text-sm">
+                            PDF, DOC, DOCX files up to 10MB
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
+                          onClick={() => document.getElementById('jd-vs-resume-upload')?.click()}
+                        >
+                          <FolderOpen className="w-4 h-4 mr-2" />
+                          Browse Files
+                        </Button>
                       </div>
                       <Input
                         id="jd-vs-resume-upload"
@@ -914,13 +990,23 @@ const Dashboard = () => {
                     <Label className="text-gray-300 text-lg font-semibold">Bulk Resume Upload</Label>
                     <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center hover:border-purple-500/50 transition-colors">
                       <Users className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                      <div className="space-y-2">
-                        <Label htmlFor="bulk-upload" className="text-white font-medium cursor-pointer">
-                          Drop multiple resumes here or click to browse
-                        </Label>
-                        <p className="text-gray-400 text-sm">
-                          Select multiple PDF, DOC, DOCX files (up to 50 files)
-                        </p>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="bulk-upload" className="text-white font-medium cursor-pointer text-lg">
+                            Drop multiple resumes here or click to browse
+                          </Label>
+                          <p className="text-gray-400 text-sm">
+                            Select multiple PDF, DOC, DOCX files (up to 50 files)
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30"
+                          onClick={() => document.getElementById('bulk-upload')?.click()}
+                        >
+                          <FolderOpen className="w-4 h-4 mr-2" />
+                          Browse Files
+                        </Button>
                       </div>
                       <Input
                         id="bulk-upload"
@@ -959,6 +1045,13 @@ const Dashboard = () => {
                         <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-6 text-center">
                           <FileText className="w-8 h-8 text-purple-400 mx-auto mb-2" />
                           <p className="text-white text-sm">Upload JD file</p>
+                          <Button
+                            variant="outline"
+                            className="bg-purple-500/20 border-purple-500/50 text-purple-300 hover:bg-purple-500/30 mt-2"
+                          >
+                            <FolderOpen className="w-4 h-4 mr-2" />
+                            Browse Files
+                          </Button>
                         </div>
                       </TabsContent>
                       <TabsContent value="url">
@@ -979,14 +1072,13 @@ const Dashboard = () => {
                   Match to Job
                 </Button>
                 
-                {/* Results Area */}
+                {/* Bulk Results */}
                 <div className="bg-slate-800/50 rounded-lg border border-purple-500/20 p-6">
-                  <h3 className="text-white font-semibold mb-4">Bulk Analysis Results</h3>
-                  <div className="text-center py-12">
-                    <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">No bulk analysis results yet</p>
-                    <p className="text-gray-500 text-sm">Upload resumes and job description to see candidate rankings</p>
-                  </div>
+                  <BulkResumeResults
+                    results={bulkResults}
+                    onViewDetails={handleViewDetails}
+                    onDownload={handleDownload}
+                  />
                 </div>
               </CardContent>
             </Card>
