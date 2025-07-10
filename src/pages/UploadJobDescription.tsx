@@ -34,6 +34,14 @@ const UploadJobDescription = () => {
     }
   };
 
+  const handleBrowseFiles = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.doc,.docx,.txt';
+    input.onchange = handleFileUpload as any;
+    input.click();
+  };
+
   const simulateUpload = () => {
     setUploadProgress(0);
     const interval = setInterval(() => {
@@ -94,7 +102,7 @@ const UploadJobDescription = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/dashboard')}
-                className="text-purple-400 hover:text-purple-300"
+                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
@@ -106,7 +114,7 @@ const UploadJobDescription = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {}}
-                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
               >
                 <History className="w-4 h-4 mr-2" />
                 Show History
@@ -115,7 +123,7 @@ const UploadJobDescription = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleExport('CSV')}
-                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
               >
                 <Download className="w-4 h-4 mr-2" />
                 CSV
@@ -124,7 +132,7 @@ const UploadJobDescription = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleExport('PDF')}
-                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
               >
                 <Download className="w-4 h-4 mr-2" />
                 PDF
@@ -156,7 +164,7 @@ const UploadJobDescription = () => {
                 onClick={() => setActiveTab('text')}
                 className={activeTab === 'text' 
                   ? 'bg-cyan-500 hover:bg-cyan-600 text-white' 
-                  : 'border-purple-500/50 text-purple-400 hover:bg-purple-500/10'
+                  : 'border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300'
                 }
               >
                 <FileText className="w-4 h-4 mr-2" />
@@ -167,7 +175,7 @@ const UploadJobDescription = () => {
                 onClick={() => setActiveTab('file')}
                 className={activeTab === 'file' 
                   ? 'bg-cyan-500 hover:bg-cyan-600 text-white' 
-                  : 'border-purple-500/50 text-purple-400 hover:bg-purple-500/10'
+                  : 'border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300'
                 }
               >
                 <Upload className="w-4 h-4 mr-2" />
@@ -197,7 +205,10 @@ const UploadJobDescription = () => {
                     id="jd-upload"
                   />
                   <label htmlFor="jd-upload">
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                    <Button 
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      onClick={handleBrowseFiles}
+                    >
                       <FileText className="w-4 h-4 mr-2" />
                       Browse Files
                     </Button>
