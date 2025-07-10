@@ -67,7 +67,7 @@ const JDExtractor = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/dashboard')}
-                className="text-purple-400 hover:text-purple-300 hover:bg-purple-500/10"
+                className="text-purple-400 hover:text-purple-300"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
@@ -79,7 +79,7 @@ const JDExtractor = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleExport('CSV')}
-                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
               >
                 <Download className="w-4 h-4 mr-2" />
                 CSV
@@ -88,7 +88,7 @@ const JDExtractor = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleExport('PDF')}
-                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:text-purple-300"
+                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
               >
                 <Download className="w-4 h-4 mr-2" />
                 PDF
