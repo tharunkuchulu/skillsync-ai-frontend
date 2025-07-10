@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,11 +140,12 @@ const Dashboard = () => {
     setProgress(0);
     const interval = setInterval(() => {
       setProgress(prev => {
-        if (prev >= 100) {
+        const newProgress = prev + 10;
+        if (newProgress >= 100) {
           clearInterval(interval);
           return 100;
         }
-        return prev + 10;
+        return newProgress;
       });
     }, 200);
   };
