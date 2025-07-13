@@ -46,6 +46,12 @@ const Dashboard = () => {
   const recruitRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
 
+  // Refs for file inputs
+  const resumeFileRef = useRef<HTMLInputElement>(null);
+  const jdFileRef = useRef<HTMLInputElement>(null);
+  const jdVsResumeFileRef = useRef<HTMLInputElement>(null);
+  const recruitFileRef = useRef<HTMLInputElement>(null);
+
   // Active section state
   const [activeSection, setActiveSection] = useState("resume-analysis-engine");
 
@@ -666,14 +672,15 @@ const Dashboard = () => {
                     accept=".pdf,.doc,.docx"
                     onChange={handleResumeUpload}
                     className="hidden"
-                    id="resume-upload"
+                    ref={resumeFileRef}
                   />
-                  <label htmlFor="resume-upload">
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                      <FileText className="w-4 h-4 mr-2" />
-                      Browse Files
-                    </Button>
-                  </label>
+                  <Button 
+                    onClick={() => resumeFileRef.current?.click()}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Browse Files
+                  </Button>
                 </div>
 
                 {uploadedResume && (
@@ -921,14 +928,15 @@ const Dashboard = () => {
                         accept=".pdf,.doc,.docx,.txt"
                         onChange={handleJDFileUpload}
                         className="hidden"
-                        id="jd-upload"
+                        ref={jdFileRef}
                       />
-                      <label htmlFor="jd-upload">
-                        <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                          <FileText className="w-4 h-4 mr-2" />
-                          Browse Files
-                        </Button>
-                      </label>
+                      <Button 
+                        onClick={() => jdFileRef.current?.click()}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Browse Files
+                      </Button>
                     </div>
 
                     {uploadedJDFile && (
@@ -1398,14 +1406,15 @@ const Dashboard = () => {
                           accept=".pdf,.doc,.docx"
                           onChange={handleJdVsResumeUpload}
                           className="hidden"
-                          id="jd-vs-resume-upload"
+                          ref={jdVsResumeFileRef}
                         />
-                        <label htmlFor="jd-vs-resume-upload">
-                          <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                            <FileText className="w-4 h-4 mr-2" />
-                            Browse Files
-                          </Button>
-                        </label>
+                        <Button 
+                          onClick={() => jdVsResumeFileRef.current?.click()}
+                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Browse Files
+                        </Button>
                       </div>
 
                       {jdVsUploadedResume && (
@@ -1507,14 +1516,15 @@ const Dashboard = () => {
                           accept=".pdf,.doc,.docx"
                           onChange={handleRecruitFileUpload}
                           className="hidden"
-                          id="bulk-resume-upload"
+                          ref={recruitFileRef}
                         />
-                        <label htmlFor="bulk-resume-upload">
-                          <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                            <FileText className="w-4 h-4 mr-2" />
-                            Browse Files
-                          </Button>
-                        </label>
+                        <Button 
+                          onClick={() => recruitFileRef.current?.click()}
+                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Browse Files
+                        </Button>
                       </div>
 
                       {recruitFiles.length > 0 && (
